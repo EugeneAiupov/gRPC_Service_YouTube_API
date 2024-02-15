@@ -58,7 +58,7 @@ func main() {
 	videoURLs := flag.Args()
 
 	if len(videoURLs) == 0 {
-		fmt.Println("Используйте: [--async] <video_url1> <video_url2>...")
+		fmt.Println("Используйте для параллельной обработки: [--async] <video_url1> <video_url2>...")
 		return
 	}
 
@@ -80,17 +80,15 @@ func main() {
 		}
 
 		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			getThumbnail(client, id, &wg)
-		}(videoID)
-
-		wg.Add(1)
-		if !*asyncFlag {
-			wg.Wait()
+		if *asyncFlag {
+			go func(id string) {
+				getThumbnail(client, id, &wg)
+			}(videoID)
+		} else {
+			getThumbnail(client, videoID, &wg)
 		}
+
 	}
-	if *asyncFlag {
-		wg.Wait()
-	}
+
+	wg.Wait()
 }
