@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+// Имя пакета, используется для генерации пространства имен в коде.
+package main;
+
+option go_package = "./src";
+// Определение сервиса, который содержит методы, доступные для вызова через gRPS.
+service ThumbnailerService {
+    rpc GetThumbnail(GetThumbnailRequest) returns (GetThumbnailResponse) {}
+}
+
+// Сообщение запроса, содержащее URL видеоролика.
+message GetThumbnailRequest {
+    string video_url = 1;
+}
+
+// Сообщение ответа
+message GetThumbnailResponse {
+    string thumbnail_path = 1;
+}
