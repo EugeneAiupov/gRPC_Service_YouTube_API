@@ -42,6 +42,7 @@ func (s *Server) ClearCache() {
 	}
 }
 
+// CheckCache проверяет наличие превью по videoID
 func (s *Server) CheckCache(videoID string) (string, bool) {
 	cacheMutex.RLock()
 	defer cacheMutex.RUnlock()
@@ -49,6 +50,7 @@ func (s *Server) CheckCache(videoID string) (string, bool) {
 	return url, found
 }
 
+// Возвращает videoID через YouTube API или ошибку в случае неудачи
 func (s *Server) GetThumbnail(ctx context.Context, req *GetThumbnailRequest) (*GetThumbnailResponse, error) {
 	videoID := req.GetVideoUrl()
 
@@ -60,25 +62,26 @@ func (s *Server) GetThumbnail(ctx context.Context, req *GetThumbnailRequest) (*G
 		return &GetThumbnailResponse{ThumbnailPath: url}, nil
 	}
 
-	apiKey := "AIzaSyCuRb8FAAbzDWZ1nl0tE5iSeONivMuREYM"
-	apiUrl := fmt.Sprintf("https://www.googleapis.com/youtube/v3/videos?id=%s&key=%s&part=snippet", videoID, apiKey)
+	// Плохая реализация API key
+	youtubeAPIKEY := "AIzaSyCuRb8FAAbzDWZ1nl0tE5iSeONivMuREYM"
+	youtubeAPIURL := fmt.Sprintf("https://www.googleapis.com/youtube/v3/videos?id=%s&key=%s&part=snippet", videoID, youtubeAPIKEY)
 
-	resp, err := http.Get(apiUrl)
+	resp, err := http.Get(youtubeAPIURL)
 	if err != nil {
-		return nil, fmt.Errorf("error making request to YouTube API: %v", err)
+		return nil, fmt.Errorf("Ошибка запроса к YouTube API: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Чтение ответа
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error decode response from YouTube API: %v", err)
+		return nil, fmt.Errorf("Ошибка чтения ответа от YouTube API: %v", err)
 	}
 
 	// Десериализация JSON ответа
 	var apiResponse YouTubeApiResponse
 	if err := json.Unmarshal(body, &apiResponse); err != nil {
-		return nil, fmt.Errorf("error decode response from YouTube API (2): %v", err)
+		return nil, fmt.Errorf("Ошибка декодирования ответа от YouTube API (2): %v", err)
 	}
 
 	if len(apiResponse.Items) == 0 {

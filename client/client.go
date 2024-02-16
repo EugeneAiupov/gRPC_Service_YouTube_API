@@ -16,7 +16,7 @@ import (
 
 var (
 	serverAddr = "localhost:50051"
-	asyncFlag  = flag.Bool("async", false, "Запросить несколько видео")
+	asyncFlag  = flag.Bool("async", false, "Обработать асинхронно, для большого количества видео")
 )
 
 // Вытаскивает ID видео из URL
@@ -34,7 +34,7 @@ func ExtractVideoID(videoURL string) (string, error) {
 		return strings.TrimPrefix(u.Path, "/"), nil
 	}
 
-	return "", fmt.Errorf("неизвестный формат URL видео")
+	return "", fmt.Errorf("Ошибка: неизвестный формат URL видео")
 }
 
 func getThumbnail(client src.ThumbnailerServiceClient, videoID string, wg *sync.WaitGroup) {
@@ -46,7 +46,7 @@ func getThumbnail(client src.ThumbnailerServiceClient, videoID string, wg *sync.
 	r, err := client.GetThumbnail(ctx, &src.GetThumbnailRequest{VideoUrl: videoID})
 
 	if err != nil {
-		log.Printf("Невозможно получить превью для видео с ID %s: %v", videoID, err)
+		log.Printf("Ошибка: невозможно получить превью для видео с ID %s: %v", videoID, err)
 		return
 	}
 
@@ -58,11 +58,11 @@ func main() {
 	videoURLs := flag.Args()
 
 	if len(videoURLs) == 0 {
-		fmt.Println("Используйте: [--async] <video_url1> <video_url2>...")
+		fmt.Println("Используйте для параллельной обработки: [--async] <video_url1> <video_url2>...")
 		return
 	}
 
-	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(serverAddr, grpc.WithInsecure(), grpc.WithBlock(), grpc.FailOnNonTempDialError(true))
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
 	}
@@ -80,17 +80,15 @@ func main() {
 		}
 
 		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			getThumbnail(client, id, &wg)
-		}(videoID)
-
-		wg.Add(1)
-		if !*asyncFlag {
-			wg.Wait()
+		if *asyncFlag {
+			go func(id string) {
+				getThumbnail(client, id, &wg)
+			}(videoID)
+		} else {
+			getThumbnail(client, videoID, &wg)
 		}
+
 	}
-	if *asyncFlag {
-		wg.Wait()
-	}
+
+	wg.Wait()
 }
