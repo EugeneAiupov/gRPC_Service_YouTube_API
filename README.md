@@ -58,7 +58,6 @@ go build
 ```bash
 ./client --async <URL видео ролика с YouTube> <...> <URL видео ролика с YouTube>
 ```
-
 ## Контакты 
 Если у вас возникли вопросы или предложения, пожалуйста, свяжитесь со мной по (eugeneyounge@gmail.com)
 
