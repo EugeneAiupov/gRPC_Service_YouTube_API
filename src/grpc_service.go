@@ -63,8 +63,8 @@ func (s *Server) GetThumbnail(ctx context.Context, req *GetThumbnailRequest) (*G
 	}
 
 	// Плохая реализация API key
-	youtubeAPIKEY := "AIzaSyCuRb8FAAbzDWZ1nl0tE5iSeONivMuREYM"
-	youtubeAPIURL := fmt.Sprintf("https://www.googleapis.com/youtube/v3/videos?id=%s&key=%s&part=snippet", videoID, youtubeAPIKEY)
+	youtubeAPIKEY := "API key here"
+	youtubeAPIURL := fmt.Sprintf("API URL", videoID, youtubeAPIKEY)
 
 	resp, err := http.Get(youtubeAPIURL)
 	if err != nil {
